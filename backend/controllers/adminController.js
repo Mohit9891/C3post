@@ -1,11 +1,16 @@
 const db = require('../config/db');
-
-exports.getPendingUsers = async (req, res) => {
+exports.getAllUsers = async (req, res) => {
   try {
-    const [users] = await db.query(
-      'SELECT id, name, email, status, created_at FROM users WHERE status = ? AND role = ?',
-      ['pending', 'user']
-    );
+    const { status } = req.query;
+    let query = 'SELECT id, name, email, status, created_at FROM users WHERE role = ?';
+    const params = ['user'];
+
+    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+
+    const [users] = await db.query(query, params);
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
