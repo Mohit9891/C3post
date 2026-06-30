@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../utils/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Orderlist() {
   const [orders, setOrders] = useState([]);
@@ -19,10 +20,13 @@ export default function Orderlist() {
   useEffect(() => {
     fetchOrders();
   }, []);
+  const navigate = useNavigate();
 
   const statusLabel = (status) => (status === 1 ? "Delivered" : "Pending");
   const statusStyle = (status) =>
-    status === 1 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700";
+    status === 1
+      ? "bg-green-100 text-green-700"
+      : "bg-yellow-100 text-yellow-700";
 
   return (
     <div className="min-h-screen bg-[#f4f7fe] p-6 font-sans">
@@ -51,17 +55,33 @@ export default function Orderlist() {
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 text-[#4A5568]">{order.order_number}</td>
-                    <td className="px-6 py-4 text-[#4A5568]">{order.carrier_name || "-"}</td>
-                    <td className="px-6 py-4 text-[#4A5568]">{order.buyer_name}</td>
-                    <td className="px-6 py-4 text-[#4A5568]">{order.order_weight} kg</td>
-                    <td className="px-6 py-4 text-[#4A5568]">₹{order.order_value}</td>
+                  <tr
+                    key={order.id}
+                    onClick={() => navigate(`/orders/${order.id}`)}
+                    className="cursor-pointer hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 text-[#4A5568]">
+                      {order.order_number}
+                    </td>
+                    <td className="px-6 py-4 text-[#4A5568]">
+                      {order.carrier_name || "-"}
+                    </td>
+                    <td className="px-6 py-4 text-[#4A5568]">
+                      {order.buyer_name}
+                    </td>
+                    <td className="px-6 py-4 text-[#4A5568]">
+                      {order.order_weight} kg
+                    </td>
+                    <td className="px-6 py-4 text-[#4A5568]">
+                      ₹{order.order_value}
+                    </td>
                     <td className="px-6 py-4 text-gray-400">
                       {new Date(order.booking_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs px-2 py-1 rounded-full ${statusStyle(order.status)}`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${statusStyle(order.status)}`}
+                      >
                         {statusLabel(order.status)}
                       </span>
                     </td>

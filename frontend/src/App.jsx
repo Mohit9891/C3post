@@ -5,7 +5,8 @@ import AdminDashboard from "./pages/AdminDashBoard";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Orderbook from "./pages/Orderbook";
-import Orderlist from './pages/Orderlist';
+import Orderlist from "./pages/Orderlist";
+import OrderDetails from "./pages/OrderDetails";
 
 function App() {
   return (
@@ -42,6 +43,15 @@ function App() {
           element={
             <ProtectedRoute allowedRole="user">
               <Orderlist />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/orders/:id"
+          element={
+            <ProtectedRoute allowedRole="user">
+              <OrderDetails />
             </ProtectedRoute>
           }
         />

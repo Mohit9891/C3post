@@ -37,6 +37,29 @@ exports.getCarriers = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+// Get single order by id
+exports.getOrderById = async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.user.id;
+
+  try {
+    const [orders] = await db.query(
+      `SELECT orders.*, carriers.name as carrier_name, carriers.carrier_code, carriers.image_url
+       FROM orders
+       LEFT JOIN carriers ON orders.carrier_id = carriers.id
+       WHERE orders.id = ? AND orders.user_id = ?`,
+      [id, user_id]
+    );
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.json(orders[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
 
 // Create order
 exports.createOrder = async (req, res) => {

@@ -35,21 +35,22 @@ export default function Orderbook() {
     }
   };
 
-  const handleSelectCarrier = async (carrier_id) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await API.post(
-        "/orders",
-        { ...formData, carrier_id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert(`${res.data.message} - Order Number: ${res.data.order_number}`);
-      setShowPopup(false);
-      navigate("/orderlist");
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to create order");
-    }
-  };
+const handleSelectCarrier = async (carrier_id) => {
+  console.log("Sending order data:", { ...formData, carrier_id });
+  try {
+    const token = localStorage.getItem("token");
+    const res = await API.post(
+      "/orders",
+      { ...formData, carrier_id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    alert(`${res.data.message} - Order Number: ${res.data.order_number}`);
+    setShowPopup(false);
+    navigate("/orderlist");
+  } catch (err) {
+    alert(err.response?.data?.message || "Failed to create order");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#f4f7fe] p-6 font-sans">
