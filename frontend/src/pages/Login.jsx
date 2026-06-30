@@ -21,6 +21,7 @@ export default function Login() {
       const res = await API.post("/auth/login", formData);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
+      localStorage.setItem("name", res.data.name);
       alert(res.data.message);
       if (res.data.role === "admin") {
         navigate("/admin");
@@ -34,12 +35,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f4f7fe] p-4 font-sans text-[#333333]">
-      
       {/* Logo */}
-      <h1 className="text-3xl font-bold text-[#1a1aff] mb-6 tracking-wide">C3POST</h1>
+      <h1 className="text-3xl font-bold text-[#1a1aff] mb-6 tracking-wide">
+        C3POST
+      </h1>
 
       <div className="bg-white w-full max-w-[480px] rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
-        
         <h2 className="text-center text-xl font-semibold text-[#4A5568] mb-8">
           Sign in to C3POST
         </h2>
@@ -47,7 +48,9 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-[#4A5568] mb-2">Email</label>
+            <label className="block text-sm font-medium text-[#4A5568] mb-2">
+              Email
+            </label>
             <input
               name="email"
               type="email"
@@ -61,8 +64,12 @@ export default function Login() {
           {/* Password */}
           <div>
             <div className="flex justify-between mb-2">
-              <label className="text-sm font-medium text-[#4A5568]">Password</label>
-              <a href="#" className="text-sm text-gray-400 hover:underline">Forgot password?</a>
+              <label className="text-sm font-medium text-[#4A5568]">
+                Password
+              </label>
+              <a href="#" className="text-sm text-gray-400 hover:underline">
+                Forgot password?
+              </a>
             </div>
             <input
               name="password"
@@ -85,9 +92,13 @@ export default function Login() {
             />
             <label htmlFor="terms" className="text-xs text-[#4A5568]">
               I agree to the{" "}
-              <a href="#" className="text-[#5c7cfa] hover:underline">Terms & Condition</a>{" "}
+              <a href="#" className="text-[#5c7cfa] hover:underline">
+                Terms & Condition
+              </a>{" "}
               &{" "}
-              <a href="#" className="text-[#5c7cfa] hover:underline">Privacy Policy</a>
+              <a href="#" className="text-[#5c7cfa] hover:underline">
+                Privacy Policy
+              </a>
             </label>
           </div>
 

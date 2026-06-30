@@ -43,7 +43,7 @@ exports.login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ token, role: user.role, message: 'Login successful' });
+    res.json({ token, role: user.role, name: user.name, message: 'Login successful' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
