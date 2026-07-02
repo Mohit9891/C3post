@@ -1,55 +1,61 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 // Generate order number
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString().slice(-8);
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const random = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
   return `C3P${timestamp}${random}`;
 };
 
 // Get available carriers with calculated rates
 exports.getCarriers = async (req, res) => {
-  const { weight, length, width, height } = req.query;
+  const { weight, totalVolumetric } = req.query;
 
   try {
-    const [carriers] = await db.query('SELECT * FROM carriers WHERE status = 1');
+    const [carriers] = await db.query(
+      "SELECT * FROM carriers WHERE status = 1",
+    );
 
-    const result = await Promise.all(carriers.map(async (carrier) => {
-      const volumetricWeight = (length * width * height) / carrier.divisor;
-      const chargeableWeight = Math.max(parseFloat(weight), volumetricWeight);
-      const available = chargeableWeight <= carrier.max_weight;
+    const result = await Promise.all(
+      carriers.map(async (carrier) => {
+        const volumetricWeight = parseFloat(totalVolumetric) / carrier.divisor;
+        const chargeableWeight = Math.max(parseFloat(weight), volumetricWeight);
+        const available = chargeableWeight <= carrier.max_weight;
 
-      let rate_per_kg = null;
-      let price = null;
+        let rate_per_kg = null;
+        let price = null;
 
-      if (available) {
-        const [rates] = await db.query(
-          `SELECT rate_per_kg FROM carrier_rates 
+        if (available) {
+          const [rates] = await db.query(
+            `SELECT rate_per_kg FROM carrier_rates 
            WHERE carrier_id = ? AND min_weight <= ? AND max_weight >= ?`,
-          [carrier.id, chargeableWeight, chargeableWeight]
-        );
-        if (rates.length > 0) {
-          rate_per_kg = rates[0].rate_per_kg;
-          price = (rate_per_kg * chargeableWeight).toFixed(2);
+            [carrier.id, chargeableWeight, chargeableWeight],
+          );
+          if (rates.length > 0) {
+            rate_per_kg = rates[0].rate_per_kg;
+            price = (rate_per_kg * chargeableWeight).toFixed(2);
+          }
         }
-      }
 
-      return {
-        id: carrier.id,
-        name: carrier.name,
-        carrier_code: carrier.carrier_code,
-        image_url: carrier.image_url,
-        max_weight: carrier.max_weight,
-        chargeable_weight: chargeableWeight.toFixed(2),
-        rate_per_kg,
-        price,
-        available,
-      };
-    }));
+        return {
+          id: carrier.id,
+          name: carrier.name,
+          carrier_code: carrier.carrier_code,
+          image_url: carrier.image_url,
+          max_weight: carrier.max_weight,
+          chargeable_weight: chargeableWeight.toFixed(2),
+          rate_per_kg,
+          price,
+          available,
+        };
+      }),
+    );
 
     res.json(result);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 // Get single order by id
@@ -63,16 +69,16 @@ exports.getOrderById = async (req, res) => {
        FROM orders
        LEFT JOIN carriers ON orders.carrier_id = carriers.id
        WHERE orders.id = ? AND orders.user_id = ?`,
-      [id, user_id]
+      [id, user_id],
     );
 
     if (orders.length === 0) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: "Order not found" });
     }
 
     res.json(orders[0]);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
@@ -81,30 +87,67 @@ exports.createOrder = async (req, res) => {
   const user_id = req.user.id;
   const {
     carrier_id,
-    seller_name, seller_address1, seller_address2, seller_pincode, seller_contact,
-    buyer_name, buyer_address1, buyer_address2, buyer_pincode, buyer_contact,
-    order_weight, length, width, height, order_value, booking_date
+    seller_name,
+    seller_address1,
+    seller_address2,
+    seller_pincode,
+    seller_contact,
+    buyer_name,
+    buyer_address1,
+    buyer_address2,
+    buyer_pincode,
+    buyer_contact,
+    order_weight,
+    length,
+    width,
+    height,
+    order_value,
+    booking_date,
+    base_price,
+    gst,
+    total_price,
   } = req.body;
 
   try {
     const order_number = generateOrderNumber();
     await db.query(
       `INSERT INTO orders (
-        order_number, user_id, carrier_id,
-        seller_name, seller_address1, seller_address2, seller_pincode, seller_contact,
-        buyer_name, buyer_address1, buyer_address2, buyer_pincode, buyer_contact,
-        order_weight, length, width, height, order_value, booking_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  order_number, user_id, carrier_id,
+  seller_name, seller_address1, seller_address2, seller_pincode, seller_contact,
+  buyer_name, buyer_address1, buyer_address2, buyer_pincode, buyer_contact,
+  order_weight, length, width, height, order_value, booking_date,
+  base_price, gst, total_price
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        order_number, user_id, carrier_id || null,
-        seller_name, seller_address1, seller_address2 || null, seller_pincode, seller_contact,
-        buyer_name, buyer_address1, buyer_address2 || null, buyer_pincode, buyer_contact,
-        order_weight, length, width, height, order_value, booking_date
-      ]
+        order_number,
+        user_id,
+        carrier_id || null,
+        seller_name,
+        seller_address1,
+        seller_address2 || null,
+        seller_pincode,
+        seller_contact,
+        buyer_name,
+        buyer_address1,
+        buyer_address2 || null,
+        buyer_pincode,
+        buyer_contact,
+        order_weight,
+        length,
+        width,
+        height,
+        order_value,
+        booking_date,
+        base_price || null,
+        gst || null,
+        total_price || null,
+      ],
     );
-    res.status(201).json({ message: 'Order created successfully', order_number });
+    res
+      .status(201)
+      .json({ message: "Order created successfully", order_number });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
@@ -118,10 +161,10 @@ exports.getUserOrders = async (req, res) => {
        LEFT JOIN carriers ON orders.carrier_id = carriers.id
        WHERE orders.user_id = ? 
        ORDER BY orders.created_at DESC`,
-      [user_id]
+      [user_id],
     );
     res.json(orders);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
