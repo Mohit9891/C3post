@@ -12,14 +12,27 @@ exports.getCarriers = async (req, res) => {
   const { weight, length, width, height } = req.query;
 
   try {
-    const [carriers] = await db.query(
-      'SELECT * FROM carriers WHERE status = 1'
-    );
+    const [carriers] = await db.query('SELECT * FROM carriers WHERE status = 1');
 
-    const result = carriers.map((carrier) => {
+    const result = await Promise.all(carriers.map(async (carrier) => {
       const volumetricWeight = (length * width * height) / carrier.divisor;
       const chargeableWeight = Math.max(parseFloat(weight), volumetricWeight);
       const available = chargeableWeight <= carrier.max_weight;
+
+      let rate_per_kg = null;
+      let price = null;
+
+      if (available) {
+        const [rates] = await db.query(
+          `SELECT rate_per_kg FROM carrier_rates 
+           WHERE carrier_id = ? AND min_weight <= ? AND max_weight >= ?`,
+          [carrier.id, chargeableWeight, chargeableWeight]
+        );
+        if (rates.length > 0) {
+          rate_per_kg = rates[0].rate_per_kg;
+          price = (rate_per_kg * chargeableWeight).toFixed(2);
+        }
+      }
 
       return {
         id: carrier.id,
@@ -28,9 +41,11 @@ exports.getCarriers = async (req, res) => {
         image_url: carrier.image_url,
         max_weight: carrier.max_weight,
         chargeable_weight: chargeableWeight.toFixed(2),
+        rate_per_kg,
+        price,
         available,
       };
-    });
+    }));
 
     res.json(result);
   } catch (err) {
